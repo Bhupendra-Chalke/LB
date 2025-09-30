@@ -1,0 +1,151 @@
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f9f9f9;
+  width: 500px;
+  padding: 15px;
+  color: #333;
+}
+
+h1 {
+  font-size: 20px;
+  text-align: center;
+  margin: 0 0 15px 0;
+  color: #d32f2f; /* Canon Red */
+}
+
+#scan-button {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  background-color: #d32f2f;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+#scan-button:hover {
+  background-color: #b71c1c;
+}
+
+#scan-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+#report-container {
+  margin-top: 15px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.report-section {
+  border-bottom: 1px solid #eee;
+}
+
+.section-header {
+  background-color: #f1f1f1;
+  padding: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-header:hover {
+  background-color: #e9e9e9;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+}
+
+.status-icon {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.status-pass { background-color: #4CAF50; }
+.status-fail { background-color: #f44336; }
+.status-warn { background-color: #ff9800; }
+.status-info { background-color: #2196F3; }
+.status-pending { background-color: #9E9E9E; }
+
+
+.section-content {
+  padding: 10px;
+  display: none; /* Hidden by default */
+}
+
+.section-content ul {
+  list-style-type: none;
+  padding-left: 15px;
+  margin: 0;
+}
+
+.section-content li {
+  padding: 5px 0;
+  border-bottom: 1px dashed #eee;
+}
+
+.section-content li:last-child {
+  border-bottom: none;
+}
+
+.link-status {
+  font-weight: bold;
+}
+
+.link-status-ok { color: #4CAF50; }
+.link-status-broken { color: #f44336; }
+
+.sub-item {
+    margin-left: 20px;
+    padding: 3px 0;
+}
+.sub-item-header {
+    font-weight: bold;
+}
+
+.arrow {
+  border: solid #555;
+  border-width: 0 2px 2px 0;
+  display: inline-block;
+  padding: 3px;
+  transform: rotate(45deg);
+  transition: transform 0.3s;
+}
+
+.section-header.open .arrow {
+  transform: rotate(-135deg);
+}
+
+#loader {
+  text-align: center;
+  padding: 20px;
+  display: none; /* Hidden by default */
+}
+
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-radius: 50%;
+  border-top: 4px solid #d32f2f;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 10px auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
