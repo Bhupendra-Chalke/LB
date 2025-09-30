@@ -6,18 +6,28 @@
 </head>
 <body>
   <div class="container">
-    <h1>QA & SEO Check</h1>
-    <button id="run-qa-btn">Run QA</button>
+    <div class="header">
+      <h1>QA & SEO Report</h1>
+      <button id="run-qa-btn">Run Checks</button>
+    </div>
+    <div id="loading" class="hidden">
+      <p>Running checks, please wait...</p>
+    </div>
+    <div id="error-container" class="hidden">
+      <h2>An Error Occurred</h2>
+      <p>The QA script could not be completed. This might be due to a recent change in the website's structure.</p>
+      <pre id="error-details"></pre>
+    </div>
     <div id="results" class="hidden">
       <div class="tabs">
         <button class="tab-link active" data-tab="qa-results">QA Report</button>
         <button class="tab-link" data-tab="seo-results">SEO Report</button>
       </div>
       <div id="qa-results" class="tab-content active">
-        <pre id="qa-output"></pre>
+        <!-- QA results will be dynamically inserted here -->
       </div>
       <div id="seo-results" class="tab-content">
-        <pre id="seo-output"></pre>
+        <!-- SEO results will be dynamically inserted here -->
       </div>
       <div class="download-buttons">
         <button id="download-json-btn">Download JSON</button>
