@@ -9,8 +9,12 @@
   ],
   "host_permissions": [
     "https://www.canon.ie/store/*",
-    "https://www.canon.ie/store/offers/*"
+    "https://www.canon.ie/store/offers/*",
+    "<all_urls>"
   ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
     "default_popup": "popup.html",
     "default_title": "Run Canon QA Pro"

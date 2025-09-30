@@ -2,21 +2,17 @@
     // ===================================================================================
     //  CONFIGURATION OBJECT: PLEASE UPDATE THE PLACEHOLDER SELECTORS BELOW
     // ===================================================================================
-    // Instructions: For the "Site-Specific Checks" to work, replace the 'REPLACE_WITH...'
-    // strings with the actual CSS selectors from the Canon store website. The "Generic Checks"
-    // will work immediately without any changes.
     const SELECTORS = {
         topNavLinks: '.REPLACE_WITH_YOUR_TOP_NAV_LINK_SELECTOR',
         categoryLinks: '.REPLACE_WITH_YOUR_CATEGORY_LINK_SELECTOR',
         weRecommendSection: '.REPLACE_WITH_WE_RECOMMEND_SECTION_SELECTOR',
         weRecommendBlock: '.REPLACE_WITH_WE_RECOMMEND_BLOCK_SELECTOR',
-        weRecommendCta: '.REPLACE_WITH_WE_RECOMMEND_CTA_SELECTOR',
         topPicksSection: '.REPLACE_WITH_TOP_PICKS_SECTION_SELECTOR',
         topPicksProduct: '.REPLACE_WITH_TOP_PICKS_PRODUCT_SELECTOR',
         outOfStockIndicator: '.REPLACE_WITH_OUT_OF_STOCK_SELECTOR',
         adviceInspirationSection: '.REPLACE_WITH_ADVICE_INSPIRATION_SELECTOR',
         adviceInspirationBlock: '.REPLACE_WITH_ADVICE_BLOCK_SELECTOR',
-        footerLinks: 'footer a', // This is a common default that may work out-of-the-box
+        footerLinks: 'footer a',
     };
     // ===================================================================================
     //  END OF CONFIGURATION
@@ -26,24 +22,60 @@
     const isConfigured = (selector) => selector && !selector.startsWith('.REPLACE_WITH');
     const isLinkValid = (href) => href && href.trim() !== '' && href !== '#' && !href.startsWith('javascript:');
     const formatStatus = (text, status) => {
-        const statusMap = { ok: 'OK', broken: 'BROKEN', warn: 'WARN', info: 'INFO', manual: 'MANUAL' };
-        const colorMap = { ok: 'green', broken: 'red', warn: 'orange', info: 'blue', manual: 'grey' };
+        const statusMap = { ok: 'OK', broken: 'BROKEN', warn: 'WARN', info: 'INFO', manual: 'MANUAL', checking: 'CHECKING...' };
+        const colorMap = { ok: 'green', broken: 'red', warn: 'orange', info: 'blue', manual: 'grey', checking: '#666' };
         return `${text} - <strong style="color:${colorMap[status] || 'black'};">${statusMap[status] || ''}</strong>`;
     };
     const getElement = (selector) => isConfigured(selector) ? document.querySelector(selector) : null;
     const getElements = (selector) => isConfigured(selector) ? document.querySelectorAll(selector) : [];
 
-    // --- GENERIC CHECKS (RUN IMMEDIATELY) ---
+    // --- CHECK FUNCTIONS ---
     function runGenericChecks() {
         const report = [];
 
+        // SEO Details Check
+        const checkSeoDetails = () => {
+            const details = [];
+            let status = 'pass';
+
+            const title = document.title;
+            if (!title) { details.push(formatStatus('Title Tag: Missing', 'broken')); status = 'fail'; }
+            else if (title.length < 30 || title.length > 65) { details.push(formatStatus(`Title Tag: Length is ${title.length} (warn)`, 'warn')); if(status !== 'fail') status = 'warn'; }
+            else { details.push(formatStatus('Title Tag: OK', 'ok')); }
+
+            const metaDesc = document.querySelector('meta[name="description"]');
+            if (!metaDesc || !metaDesc.content) { details.push(formatStatus('Meta Description: Missing', 'warn')); if(status !== 'fail') status = 'warn'; }
+            else if (metaDesc.content.length < 70 || metaDesc.content.length > 155) { details.push(formatStatus(`Meta Description: Length is ${metaDesc.content.length} (warn)`, 'warn')); if(status !== 'fail') status = 'warn'; }
+            else { details.push(formatStatus('Meta Description: OK', 'ok')); }
+
+            const canonical = document.querySelector('link[rel="canonical"]');
+            if (!canonical) { details.push(formatStatus('Canonical URL: Missing', 'warn')); if(status !== 'fail') status = 'warn'; }
+            else if (canonical.href !== window.location.href) { details.push(formatStatus(`Canonical URL: Mismatched`, 'warn')); if(status !== 'fail') status = 'warn'; }
+            else { details.push(formatStatus('Canonical URL: OK', 'ok')); }
+
+            const robots = document.querySelector('meta[name="robots"]');
+            if (robots && robots.content && robots.content.includes('noindex')) {
+                details.push(formatStatus('Meta Robots: "noindex" found', 'broken'));
+                status = 'fail';
+            }
+
+            const ogTitle = document.querySelector('meta[property="og:title"]');
+            details.push(formatStatus(`Open Graph Title: ${ogTitle ? 'Found' : 'Missing'}`, ogTitle ? 'ok' : 'warn'));
+
+            const schema = document.querySelectorAll('script[type="application/ld+json"]');
+            details.push(formatStatus(`Schema Markup (JSON-LD): ${schema.length > 0 ? 'Found' : 'Missing'}`, schema.length > 0 ? 'ok' : 'info'));
+
+            return { title: 'SEO Details', status, details };
+        };
+        report.push(checkSeoDetails());
+
         // Check for a single H1 tag
         const h1s = document.querySelectorAll('h1');
-        if (h1s.length === 1) {
-            report.push({ title: 'H1 Tag Presence', status: 'pass', details: [formatStatus('Exactly one H1 tag found', 'ok')] });
-        } else {
-            report.push({ title: 'H1 Tag Presence', status: 'fail', details: [formatStatus(`Found ${h1s.length} H1 tags, expected 1`, 'broken')] });
-        }
+        report.push({
+            title: 'H1 Tag Presence',
+            status: h1s.length === 1 ? 'pass' : 'fail',
+            details: [formatStatus(h1s.length === 1 ? 'Exactly one H1 tag found' : `Found ${h1s.length} H1 tags, expected 1`, h1s.length === 1 ? 'ok' : 'broken')]
+        });
 
         // Check for broken images
         const images = document.querySelectorAll('img');
@@ -74,52 +106,57 @@
         return report;
     }
 
-    // --- SITE-SPECIFIC CHECKS (REQUIRE CONFIGURATION) ---
     function runConfigurableChecks() {
         const report = [];
+        const linkChecks = [
+            { selector: SELECTORS.topNavLinks, title: 'Top Navigation Links' },
+            { selector: SELECTORS.categoryLinks, title: 'Category & Subcategory Links' },
+            { selector: SELECTORS.footerLinks, title: 'Footer Links' }
+        ];
+        linkChecks.forEach(({ selector, title }) => {
+            if (!isConfigured(selector)) {
+                report.push({ title, status: 'warn', details: [formatStatus('Selector not configured', 'warn')] });
+            } else {
+                const links = getElements(selector);
+                report.push({ title, status: 'info', details: [formatStatus(`Found ${links.length} links to check`, 'info')] });
+            }
+        });
 
-        // Check Links Function
-        const checkLinks = (selector, sectionTitle) => {
-            if (!isConfigured(selector)) return { title: sectionTitle, status: 'warn', details: [formatStatus('Selector not configured', 'warn')] };
-            const links = getElements(selector);
-            if (links.length === 0) return { title: sectionTitle, status: 'warn', details: [formatStatus('No links found with selector', 'warn')] };
-            let brokenCount = 0;
-            links.forEach(link => { if (!isLinkValid(link.href)) brokenCount++; });
-            const status = brokenCount > 0 ? 'fail' : 'pass';
-            return { title: sectionTitle, status, details: [formatStatus(`Checked ${links.length} links, found ${brokenCount} broken`, status === 'fail' ? 'broken' : 'ok')] };
-        };
-        report.push(checkLinks(SELECTORS.topNavLinks, 'Top Navigation Links'));
-        report.push(checkLinks(SELECTORS.categoryLinks, 'Category & Subcategory Links'));
-        report.push(checkLinks(SELECTORS.footerLinks, 'Footer Links'));
+        const blockCountChecks = [
+            { section: SELECTORS.weRecommendSection, block: SELECTORS.weRecommendBlock, count: 4, name: '"We Recommend"' },
+            { section: SELECTORS.adviceInspirationSection, block: SELECTORS.adviceInspirationBlock, count: 3, name: '"Advice & Inspiration"' }
+        ];
+        blockCountChecks.forEach(({ section, block, count, name }) => {
+            if (!isConfigured(section) || !isConfigured(block)) {
+                report.push({ title: `${name} Block Count`, status: 'warn', details: [formatStatus('Selectors not configured', 'warn')] });
+            } else {
+                const sectionEl = getElement(section);
+                if (!sectionEl) {
+                    report.push({ title: `${name} Block Count`, status: 'warn', details: [formatStatus('Section not found', 'warn')] });
+                } else {
+                    const blocks = sectionEl.querySelectorAll(block);
+                    const status = blocks.length === count ? 'pass' : 'fail';
+                    report.push({ title: `${name} Block Count`, status, details: [formatStatus(`Found ${blocks.length} blocks, expected ${count}`, status === 'pass' ? 'ok' : 'broken')] });
+                }
+            }
+        });
 
-        // Check Block Count Function
-        const checkBlockCount = (sectionSelector, blockSelector, expectedCount, sectionName) => {
-            if (!isConfigured(sectionSelector) || !isConfigured(blockSelector)) return { title: `${sectionName} Block Count`, status: 'warn', details: [formatStatus('Selectors not configured', 'warn')] };
-            const section = getElement(sectionSelector);
-            if (!section) return { title: `${sectionName} Block Count`, status: 'warn', details: [formatStatus('Section not found', 'warn')] };
-            const blocks = section.querySelectorAll(blockSelector);
-            const status = blocks.length === expectedCount ? 'pass' : 'fail';
-            return { title: `${sectionName} Block Count`, status, details: [formatStatus(`Found ${blocks.length} blocks, expected ${expectedCount}`, status === 'pass' ? 'ok' : 'broken')] };
-        };
-        report.push(checkBlockCount(SELECTORS.weRecommendSection, SELECTORS.weRecommendBlock, 4, '"We Recommend"'));
-        report.push(checkBlockCount(SELECTORS.adviceInspirationSection, SELECTORS.adviceInspirationBlock, 3, '"Advice & Inspiration"'));
-
-        // Check OOS Products
-        const checkOOS = () => {
-            if (!isConfigured(SELECTORS.topPicksSection) || !isConfigured(SELECTORS.topPicksProduct) || !isConfigured(SELECTORS.outOfStockIndicator)) return { title: 'Our Top Picks - OOS', status: 'warn', details: [formatStatus('Selectors not configured', 'warn')] };
+        if (!isConfigured(SELECTORS.topPicksSection) || !isConfigured(SELECTORS.topPicksProduct) || !isConfigured(SELECTORS.outOfStockIndicator)) {
+            report.push({ title: 'Our Top Picks - OOS', status: 'warn', details: [formatStatus('Selectors not configured', 'warn')] });
+        } else {
             const section = getElement(SELECTORS.topPicksSection);
-            if (!section) return { title: 'Our Top Picks - OOS', status: 'warn', details: [formatStatus('Section not found', 'warn')] };
-            let oosCount = 0;
-            section.querySelectorAll(SELECTORS.topPicksProduct).forEach(p => { if (p.querySelector(SELECTORS.outOfStockIndicator)) oosCount++; });
-            const status = oosCount > 0 ? 'fail' : 'pass';
-            return { title: 'Our Top Picks - OOS', status, details: [formatStatus(`${oosCount} OOS product(s) found`, status === 'fail' ? 'broken' : 'ok')] };
-        };
-        report.push(checkOOS());
-
+            if (!section) {
+                report.push({ title: 'Our Top Picks - OOS', status: 'warn', details: [formatStatus('Section not found', 'warn')] });
+            } else {
+                let oosCount = 0;
+                section.querySelectorAll(SELECTORS.topPicksProduct).forEach(p => { if (p.querySelector(SELECTORS.outOfStockIndicator)) oosCount++; });
+                const status = oosCount > 0 ? 'fail' : 'pass';
+                report.push({ title: 'Our Top Picks - OOS', status, details: [formatStatus(`${oosCount} OOS product(s) found`, status === 'fail' ? 'broken' : 'ok')] });
+            }
+        }
         return report;
     }
 
-    // --- MANUAL CHECKS ---
     function runManualChecks() {
         return [{
             title: 'Manual Verification Required',
@@ -127,19 +164,36 @@
             details: [
                 formatStatus('Verify "Offers Tab" content matches the Offers Page.', 'manual'),
                 formatStatus('Verify correct promotions are appearing.', 'manual'),
-                formatStatus('Verify main banner appearance and redirection logic.', 'manual'),
                 formatStatus('Check for any unexpected JavaScript errors in the console.', 'manual'),
-                formatStatus('Check for any untranslated content (for non-EN markets).', 'manual'),
             ]
         }];
     }
 
-    // --- MAIN EXECUTION ---
     function runAllChecks() {
+        const allLinksOnPage = new Set();
+        document.querySelectorAll('a[href]').forEach(link => {
+            if (isLinkValid(link.href)) {
+                allLinksOnPage.add(link.href);
+            }
+        });
+
         const genericReport = runGenericChecks();
         const configurableReport = runConfigurableChecks();
+
+        const externalLinks = Array.from(allLinksOnPage).filter(href => !href.includes(window.location.hostname) && href.startsWith('http'));
+        if (externalLinks.length > 0) {
+            const details = externalLinks.map(href => `<a href="${href}" target="_blank">${href}</a>`);
+            configurableReport.push({ title: `External Links Found (${externalLinks.length})`, status: 'info', details });
+        } else {
+            configurableReport.push({ title: 'External Links Found', status: 'pass', details: [formatStatus('No external links found on the page', 'ok')] });
+        }
+
         const manualReport = runManualChecks();
-        return [...genericReport, ...configurableReport, ...manualReport];
+
+        return {
+            initialReport: [...genericReport, ...configurableReport, ...manualReport],
+            linksToCheck: Array.from(allLinksOnPage)
+        };
     }
 
     return runAllChecks();
