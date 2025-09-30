@@ -22,14 +22,21 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   chrome.runtime.onMessage.addListener((message) => {
-    loadingDiv.classList.add('hidden');
-
     if (message.type === 'QA_REPORT') {
       resultsDiv.classList.remove('hidden');
       displayResults(message.data);
     } else if (message.type === 'QA_ERROR') {
+      loadingDiv.classList.add('hidden');
       errorContainer.classList.remove('hidden');
       displayError(message.error);
+    } else if (message.type === 'QA_COMPLETE') {
+      loadingDiv.classList.add('hidden');
+      // If no report has been displayed and no error has occurred,
+      // it means the check completed with no issues to report.
+      if (resultsDiv.children.length === 0 && errorContainer.classList.contains('hidden')) {
+        resultsDiv.classList.remove('hidden');
+        resultsDiv.innerHTML = `<div class="all-clear-message">✅ No critical issues found.</div>`;
+      }
     }
   });
 

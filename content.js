@@ -32,7 +32,7 @@
    */
   async function checkOutOfStock() {
     const issues = [];
-    constoosElements = Array.from(document.querySelectorAll('*')).filter(el =>
+    const oosElements = Array.from(document.querySelectorAll('*')).filter(el =>
         el.innerText?.toLowerCase().includes('out of stock') && el.offsetParent !== null
     );
 
@@ -115,6 +115,9 @@
 
     } catch (err) {
       chrome.runtime.sendMessage({ type: 'QA_ERROR', error: { message: err.message, stack: err.stack } });
+    } finally {
+      // Always send a completion message so the popup knows the script is done.
+      chrome.runtime.sendMessage({ type: 'QA_COMPLETE' });
     }
   })();
 })();
