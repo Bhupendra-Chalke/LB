@@ -1,52 +1,34 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Canon QA/SEO Checker</title>
+  <title>QA & SEO Checker</title>
   <link rel="stylesheet" type="text/css" href="popup.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>QA & SEO Report</h1>
+      <h1>Critical QA & SEO</h1>
       <button id="run-qa-btn">▶ Run Checks</button>
     </div>
 
     <div id="initial-view">
-      <p>Click "Run Checks" to start the analysis of the current page.</p>
+      <p>Click "Run Checks" to analyze the page for the most important QA and SEO issues.</p>
     </div>
 
     <div id="loading" class="hidden">
       <div class="spinner"></div>
-      <p>Analyzing page, please wait...</p>
+      <p>Analyzing page...</p>
     </div>
 
     <div id="error-container" class="hidden">
       <h2>An Error Occurred</h2>
-      <p>The QA script could not be completed. This might be due to a recent change in the website's structure.</p>
+      <p>The script could not be completed. Please try again or check the page for issues.</p>
       <pre id="error-details"></pre>
     </div>
 
     <div id="results" class="hidden">
-      <!-- Summary Dashboard will be inserted here -->
-      <div id="summary-dashboard"></div>
-
-      <div class="tabs">
-        <button class="tab-link active" data-tab="qa-results">QA Report</button>
-        <button class="tab-link" data-tab="seo-results">SEO Report</button>
-      </div>
-
-      <div id="qa-results" class="tab-content active">
-        <!-- QA result cards will be dynamically inserted here -->
-      </div>
-      <div id="seo-results" class="tab-content">
-        <!-- SEO result cards will be dynamically inserted here -->
-      </div>
-
-      <div class="download-buttons">
-        <button id="download-json-btn">Download JSON</button>
-        <button id="download-csv-btn">Download CSV</button>
-      </div>
+      <!-- The streamlined report will be built here -->
     </div>
   </div>
   <script src="popup.js"></script>
