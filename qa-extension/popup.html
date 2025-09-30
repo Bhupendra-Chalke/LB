@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Canon QA Tool</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      width: 400px;
+      padding: 10px;
+    }
+    h1 {
+      font-size: 16px;
+      margin-top: 0;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    #report {
+      margin-top: 10px;
+      white-space: pre-wrap;
+      font-family: monospace;
+      background-color: #f4f4f4;
+      padding: 10px;
+      border: 1px solid #ddd;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>Canon Store QA Tool</h1>
+  <button id="scan-button">Scan Current Page</button>
+  <div id="report">
+    Click the button to start a QA scan.
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
