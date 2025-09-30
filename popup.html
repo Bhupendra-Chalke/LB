@@ -3,32 +3,46 @@
 <head>
   <title>Canon QA/SEO Checker</title>
   <link rel="stylesheet" type="text/css" href="popup.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <div class="container">
     <div class="header">
       <h1>QA & SEO Report</h1>
-      <button id="run-qa-btn">Run Checks</button>
+      <button id="run-qa-btn">▶ Run Checks</button>
     </div>
+
+    <div id="initial-view">
+      <p>Click "Run Checks" to start the analysis of the current page.</p>
+    </div>
+
     <div id="loading" class="hidden">
-      <p>Running checks, please wait...</p>
+      <div class="spinner"></div>
+      <p>Analyzing page, please wait...</p>
     </div>
+
     <div id="error-container" class="hidden">
       <h2>An Error Occurred</h2>
       <p>The QA script could not be completed. This might be due to a recent change in the website's structure.</p>
       <pre id="error-details"></pre>
     </div>
+
     <div id="results" class="hidden">
+      <!-- Summary Dashboard will be inserted here -->
+      <div id="summary-dashboard"></div>
+
       <div class="tabs">
         <button class="tab-link active" data-tab="qa-results">QA Report</button>
         <button class="tab-link" data-tab="seo-results">SEO Report</button>
       </div>
+
       <div id="qa-results" class="tab-content active">
-        <!-- QA results will be dynamically inserted here -->
+        <!-- QA result cards will be dynamically inserted here -->
       </div>
       <div id="seo-results" class="tab-content">
-        <!-- SEO results will be dynamically inserted here -->
+        <!-- SEO result cards will be dynamically inserted here -->
       </div>
+
       <div class="download-buttons">
         <button id="download-json-btn">Download JSON</button>
         <button id="download-csv-btn">Download CSV</button>

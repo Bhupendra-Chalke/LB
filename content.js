@@ -1,40 +1,23 @@
 (async function() {
   // --- HELPER FUNCTIONS ---
 
-  /**
-   * Highlights an element on the page.
-   * @param {HTMLElement} element The element to highlight.
-   * @param {string} status 'FAIL' for red, 'WARN' for yellow.
-   */
   function highlightElement(element, status = 'FAIL') {
     if (!element) return;
-    const color = status === 'FAIL' ? 'red' : 'yellow';
+    const color = status === 'FAIL' ? '#ff3b30' : '#ff9500';
     element.style.border = `3px solid ${color}`;
-    element.style.scrollMarginTop = '100px'; // Add margin for better visibility when scrolling
+    element.style.scrollMarginTop = '100px';
     element.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
-  /**
-   * Checks if a string is in sentence case.
-   * @param {string} str The string to check.
-   * @returns {boolean}
-   */
   function isSentenceCase(str) {
     if (!str || str.length === 0) return true;
     const trimmed = str.trim();
     return trimmed.charAt(0) === trimmed.charAt(0).toUpperCase() && trimmed.slice(1) === trimmed.slice(1).toLowerCase();
   }
 
-  /**
-   * Finds an element by its text content.
-   * @param {string} selector The element type (e.g., 'h2', 'div').
-   * @param {string} text The text to search for (case-insensitive).
-   * @returns {HTMLElement | null}
-   */
   function findElementByText(selector, text) {
       return Array.from(document.querySelectorAll(selector)).find(el => el.textContent.trim().toLowerCase().includes(text.toLowerCase()));
   }
-
 
   // --- QA CHECK FUNCTIONS ---
 
@@ -51,14 +34,11 @@
   }
 
   async function checkCategoryLinks() {
-    // Note: Replaced brittle, auto-generated selectors like '.css-1ywmljq'
     const subNav = document.querySelector('[data-analytics-nav="sub-navigation"]');
-    const links = subNav ? subNav.querySelectorAll('a') : [];
+    if (!subNav) return { status: 'FAIL', issues: ['Could not find the main sub-navigation container for categories.'] };
+
+    const links = subNav.querySelectorAll('a');
     const issues = [];
-    if (!subNav) {
-        issues.push('Could not find the main sub-navigation container for categories.');
-        return { status: 'FAIL', issues };
-    }
     for (const link of links) {
       if (!link.href || link.href.endsWith('#') || link.getAttribute('href').trim() === '') {
         issues.push(`Invalid category link: ${link.textContent.trim()}`);
@@ -69,20 +49,15 @@
   }
 
   async function checkOffersTab() {
-    // Using a more robust selector that looks for text content.
     const offerLink = findElementByText('a', 'Offers');
-    if (!offerLink) {
-      return { status: 'FAIL', issues: ['Offers tab link not found.'] };
-    }
+    if (!offerLink) return { status: 'FAIL', issues: ['Offers tab link not found.'] };
     highlightElement(offerLink, 'PASS');
     return { status: 'PASS', issues: [] };
   }
 
   async function checkMainBanner() {
     const banner = document.querySelector('.PROMOTION a, .PROMOTION img, [data-analytics-id="hero-banner"] a');
-    if (!banner) {
-      return { status: 'FAIL', issues: ['Main banner/hero promotion not found.'] };
-    }
+    if (!banner) return { status: 'FAIL', issues: ['Main banner/hero promotion not found.'] };
     highlightElement(banner, 'PASS');
     return { status: 'PASS', issues: [] };
   }
@@ -90,28 +65,20 @@
   async function checkCampaignLayout() {
       const pageText = document.body.innerText;
       const hasEndDate = /T&Cs.*(end|expir|valid).*20\d\d/i.test(pageText);
-      if(!hasEndDate) {
-          return { status: 'WARN', issues: ['Could not find a T&Cs end date. Manual check of layout required.'] };
-      }
+      if(!hasEndDate) return { status: 'WARN', issues: ['Could not find a T&Cs end date. Manual check of layout required.'] };
       return { status: 'PASS', issues: [] };
   }
 
   async function checkWeRecommendSection() {
-    // Note: Replaced brittle selector with a more robust text-based search.
     const sectionHeader = findElementByText('h2', 'We Recommend');
     if (!sectionHeader) return { status: 'FAIL', issues: ['"We Recommend" section header not found.'] };
 
-    // Assuming the blocks are siblings or in the same parent container.
     const section = sectionHeader.closest('section, div');
-    const blocks = section ? section.querySelectorAll('[class*="recommend"] a, [class*="product"] a') : [];
+    // Hardening: Instead of brittle classes, find links that contain both an image and a heading.
+    const blocks = section ? Array.from(section.querySelectorAll('a')).filter(a => a.querySelector('img') && a.querySelector('h3, h4')) : [];
     const issues = [];
 
-    // This is a very rough guess, the original selectors were too brittle.
-    // A more specific check might require more stable attributes on the page.
-    if (blocks.length === 0) {
-        issues.push('Could not find any product blocks in the "We Recommend" section.');
-        highlightElement(sectionHeader);
-    } else if (blocks.length !== 4) {
+    if (blocks.length !== 4) {
       issues.push(`Expected 4 RO blocks, but found ${blocks.length}.`);
       highlightElement(sectionHeader);
     }
@@ -126,10 +93,8 @@
   }
 
   async function checkROBlockCTAConsistency() {
-      const ctas = document.querySelectorAll('[class*="ro-block"] [class*="cta-button"], [data-analytics-type="cta"]');
-      if(ctas.length === 0) {
-          return { status: 'WARN', issues: ['No RO Block CTAs found to check.'] };
-      }
+      const ctas = document.querySelectorAll('[data-analytics-type="cta"], .cta-button');
+      if(ctas.length === 0) return { status: 'WARN', issues: ['No RO Block CTAs found to check.'] };
       return { status: 'PASS', details: 'CTA buttons found. Manual visual check recommended for consistency.' };
   }
 
@@ -138,9 +103,10 @@
     if (!sectionHeader) return { status: 'PASS', details: '"Our Top Picks" section not found.' };
 
     const section = sectionHeader.closest('section, div');
-    const topPicks = section ? section.querySelectorAll('[class*="product-card"]') : [];
+    const cards = section ? Array.from(section.children) : [];
     const issues = [];
-    topPicks.forEach(card => {
+    cards.forEach(card => {
+      // Hardening: Check for text content within the card, which is more reliable than a class.
       if (card.innerText.toLowerCase().includes('out of stock')) {
         issues.push(`Out-of-stock product found: ${card.innerText.trim().split('\n')[0]}`);
         highlightElement(card);
@@ -162,9 +128,7 @@
             issues.push(`Broken link found in Range Explorer.`);
             highlightElement(link);
         }
-        if(link.innerText.toLowerCase().includes('out of stock')) {
-            oosCount++;
-        }
+        if(link.innerText.toLowerCase().includes('out of stock')) oosCount++;
     });
     if (links.length > 0 && oosCount === links.length) {
         issues.push('All items in Range Explorer are out of stock.');
@@ -178,7 +142,6 @@
       if (!sectionHeader) return { status: 'FAIL', issues: ['Advice & Inspiration section not found.'] };
 
       const section = sectionHeader.closest('section, div');
-      // A guess for block selector, looking for articles or advice links.
       const blocks = section ? section.querySelectorAll('a[href*="/advice/"], a[href*="/blog/"]') : [];
       const headers = section ? section.querySelectorAll('h3, h4') : [];
       const issues = [];
@@ -194,12 +157,13 @@
               highlightElement(header, 'WARN');
           }
       });
-
       return { status: issues.length ? 'FAIL' : 'PASS', issues };
   }
 
   async function checkFooterLinks() {
-    const links = document.querySelectorAll('footer a');
+    const footer = document.querySelector('footer');
+    if (!footer) return { status: 'FAIL', issues: ['Could not find page footer.'] };
+    const links = footer.querySelectorAll('a');
     const issues = [];
     for (const link of links) {
       if (!link.href || link.href.endsWith('#') || link.getAttribute('href').trim() === '') {
@@ -226,7 +190,8 @@
       if (!window.location.href.toLowerCase().includes('offers')) {
           return { status: 'N/A', details: 'Not an offers page.' };
       }
-      const blocks = document.querySelectorAll('[class*="offer-block"], [class*="promotion-item"]');
+      // Hardening: Look for links containing "offer" in the href, which is more stable.
+      const blocks = document.querySelectorAll('a[href*="offer"], [data-analytics-type="offer"]');
       if (blocks.length > 0 && blocks.length < 4) {
           highlightElement(blocks[0].parentElement, 'WARN');
           return { status: 'WARN', issues: [`Found only ${blocks.length} offer blocks. Consider adding generic blocks.`]};
@@ -238,10 +203,7 @@
       const links = document.querySelectorAll('a[target="_blank"]');
       const issues = [];
       links.forEach(link => {
-          // Ignore social media links in the footer, which often open in new tabs.
-          if (link.closest('footer') && (link.href.includes('twitter') || link.href.includes('facebook') || link.href.includes('instagram'))) {
-              return;
-          }
+          if (link.closest('footer')) return; // Ignore all footer links
           issues.push(`Link opens in new tab: ${link.href}`);
           highlightElement(link, 'WARN');
       });
@@ -257,12 +219,7 @@
       const element = elements[0];
       return element ? (element[attribute] || element.textContent.trim()) : null;
     };
-
-    // Highlight images with missing or empty alt text
-    document.querySelectorAll('img:not([alt]), img[alt=""]').forEach(img => {
-        highlightElement(img, 'WARN');
-    });
-
+    document.querySelectorAll('img:not([alt]), img[alt=""]').forEach(img => highlightElement(img, 'WARN'));
     return {
       pageTitle: document.title,
       metaDescription: get('meta[name="description"]', 'content'),
@@ -271,56 +228,34 @@
       h1: get('h1', 'textContent', true),
       h2: get('h2', 'textContent', true),
       h3: get('h3', 'textContent', true),
-      altTexts: Array.from(document.querySelectorAll('img:not([alt]), img[alt=""]')).map(img => ({
-        src: img.src,
-        alt: 'MISSING'
-      })),
+      altTexts: Array.from(document.querySelectorAll('img:not([alt]), img[alt=""]')).map(img => ({ src: img.src, alt: 'MISSING' })),
       structuredData: get('script[type="application/ld+json"]', 'innerHTML')
     };
   }
 
   // --- MAIN EXECUTION ---
-
-  async function runAllChecks() {
-    const qaReport = {
-      topNavLinks: await checkTopNavLinks(),
-      categoryLinks: await checkCategoryLinks(),
-      offersTab: await checkOffersTab(),
-      mainBanner: await checkMainBanner(),
-      campaignLayout: await checkCampaignLayout(),
-      weRecommendSection: await checkWeRecommendSection(),
-      roBlockCTAConsistency: await checkROBlockCTAConsistency(),
-      ourTopPicks: await checkOurTopPicks(),
-      rangeExplorer: await checkRangeExplorer(),
-      adviceInspiration: await checkAdviceInspiration(),
-      footerLinks: await checkFooterLinks(),
-      unexpectedErrors: await checkUnexpectedErrors(),
-      offersPageBlockCount: await checkOffersPageBlockCount(),
-      windowHandling: await checkWindowHandling(),
-    };
-
-    const seoReport = getSeoData();
-
-    chrome.runtime.sendMessage({
-      type: 'QA_REPORT',
-      data: {
-        qa: qaReport,
-        seo: seoReport
-      }
-    });
-  }
-
-  try {
-    runAllChecks();
-  } catch (err) {
-    // If any of the checks fail catastrophically, send an error message
-    // to the popup to be displayed to the user.
-    chrome.runtime.sendMessage({
-      type: 'QA_ERROR',
-      error: {
-        message: err.message,
-        stack: err.stack,
-      },
-    });
-  }
+  (async () => {
+    try {
+      const qaReport = {
+        topNavLinks: await checkTopNavLinks(),
+        categoryLinks: await checkCategoryLinks(),
+        offersTab: await checkOffersTab(),
+        mainBanner: await checkMainBanner(),
+        campaignLayout: await checkCampaignLayout(),
+        weRecommendSection: await checkWeRecommendSection(),
+        roBlockCTAConsistency: await checkROBlockCTAConsistency(),
+        ourTopPicks: await checkOurTopPicks(),
+        rangeExplorer: await checkRangeExplorer(),
+        adviceInspiration: await checkAdviceInspiration(),
+        footerLinks: await checkFooterLinks(),
+        unexpectedErrors: await checkUnexpectedErrors(),
+        offersPageBlockCount: await checkOffersPageBlockCount(),
+        windowHandling: await checkWindowHandling(),
+      };
+      const seoReport = getSeoData();
+      chrome.runtime.sendMessage({ type: 'QA_REPORT', data: { qa: qaReport, seo: seoReport } });
+    } catch (err) {
+      chrome.runtime.sendMessage({ type: 'QA_ERROR', error: { message: err.message, stack: err.stack } });
+    }
+  })();
 })();
