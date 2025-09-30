@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Canon QA/SEO Checker</title>
+  <link rel="stylesheet" type="text/css" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <h1>QA & SEO Check</h1>
+    <button id="run-qa-btn">Run QA</button>
+    <div id="results" class="hidden">
+      <div class="tabs">
+        <button class="tab-link active" data-tab="qa-results">QA Report</button>
+        <button class="tab-link" data-tab="seo-results">SEO Report</button>
+      </div>
+      <div id="qa-results" class="tab-content active">
+        <pre id="qa-output"></pre>
+      </div>
+      <div id="seo-results" class="tab-content">
+        <pre id="seo-output"></pre>
+      </div>
+      <div class="download-buttons">
+        <button id="download-json-btn">Download JSON</button>
+        <button id="download-csv-btn">Download CSV</button>
+      </div>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+body {
+  font-family: sans-serif;
+  width: 500px;
+  padding: 10px;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+h1 {
+  font-size: 18px;
+  margin-top: 0;
+}
+
+button {
+  cursor: pointer;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #f0f0f0;
+}
+
+button:hover {
+  background-color: #e0e0e0;
+}
+
+#run-qa-btn {
+  width: 100%;
+  margin-bottom: 10px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+}
+
+.hidden {
+  display: none;
+}
+
+.tabs {
+  display: flex;
+  width: 100%;
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 10px;
+}
+
+.tab-link {
+  flex: 1;
+  text-align: center;
+  border: none;
+  background: none;
+  padding: 10px;
+}
+
+.tab-link.active {
+  border-bottom: 2px solid #007bff;
+  font-weight: bold;
+}
+
+.tab-content {
+  display: none;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-top: none;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-size: 12px;
+}
+
+.download-buttons {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  margin-top: 10px;
+}
